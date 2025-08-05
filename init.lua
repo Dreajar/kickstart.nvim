@@ -93,6 +93,9 @@ vim.g.maplocalleader = ' '
 -- Set to true if you have a Nerd Font installed and selected in the terminal
 vim.g.have_nerd_font = false
 
+-- WARN: This is my first change to kickstart :)
+vim.g.netrw_localdir = 1
+
 -- [[ Setting options ]]
 -- See `:help vim.o`
 -- NOTE: You can change these options as you wish!
@@ -152,6 +155,8 @@ vim.o.splitbelow = true
 vim.o.list = true
 vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
 
+vim.opt.laststatus = 3
+
 -- Preview substitutions live, as you type!
 vim.o.inccommand = 'split'
 
@@ -199,6 +204,9 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+vim.keymap.set('n', '<M-j>', '<cmd>cnext<CR>')
+vim.keymap.set('n', '<M-k>', '<cmd>cprev<CR>')
+
 -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
 -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
 -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
@@ -218,6 +226,14 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.hl.on_yank()
   end,
 })
+
+-- WARN: Add [s]mall [w]indow
+vim.keymap.set('n', '<space>st', function()
+  vim.cmd.vnew()
+  vim.cmd.term()
+  vim.cmd.wincmd 'J'
+  vim.api.nvim_win_set_height(0, 10)
+end)
 
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
@@ -351,13 +367,12 @@ require('lazy').setup({
     },
   },
 
-  -- NOTE: Plugins can specify dependencies.
+  --  -- NOTE: Plugins can specify dependencies.
   --
   -- The dependencies are proper plugin specifications as well - anything
   -- you do for a plugin at the top level, you can do for a dependency.
   --
   -- Use the `dependencies` key to specify the dependencies of a particular plugin
-
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
@@ -626,6 +641,27 @@ require('lazy').setup({
         end,
       })
 
+      -- local client = nil
+      --
+      -- vim.api.nvim_create_autocmd('FileType', {
+      --   pattern = 'markdown',
+      --   callback = function()
+      --     if not client then
+      --       local new_client = vim.lsp.start {
+      --         name = 'educationalsp',
+      --         cmd = { 'C:/Users/lmail/source/repos/educationalsp/main.exe' },
+      --       }
+      --       if not new_client then
+      --         vim.notify "Hey, you didn't do the client thing good."
+      --         return
+      --       end
+      --       client = new_client
+      --     end
+      --     vim.lsp.buf_attach_client(0, client)
+      --     vim.notify 'LSP attached!'
+      --   end,
+      -- })
+
       -- Diagnostic Config
       -- See :help vim.diagnostic.Opts
       vim.diagnostic.config {
@@ -672,8 +708,8 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- clangd = {},
-        -- gopls = {},
-        -- pyright = {},
+        gopls = {},
+        pyright = {},
         -- rust_analyzer = {},
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
         --
@@ -736,6 +772,77 @@ require('lazy').setup({
     end,
   },
 
+  {
+    'pmizio/typescript-tools.nvim',
+    dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
+    opts = {},
+  },
+  -- { 'MunifTanjim/nui.nvim' },
+  -- {
+  --   'yetone/avante.nvim',
+  --   -- if you want to build from source then do `make BUILD_FROM_SOURCE=true`
+  --   -- ⚠️ must add this setting! ! !
+  --   build = vim.fn.has 'win32' and 'powershell -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false' or 'make',
+  --   event = 'VeryLazy',
+  --   version = false, -- Never set this value to "*"! Never!
+  --   ---@module 'avante'
+  --   ---@type avante.Config
+  --   opts = {
+  --     -- add any opts here
+  --     -- for example
+  --     provider = 'openai',
+  --     providers = {
+  --       openai = {
+  --         endpoint = 'https://api.openai.com/v1',
+  --         model = 'gpt-4o-mini',
+  --         timeout = 30000, -- Timeout in milliseconds
+  --         extra_request_body = {
+  --           temperature = 0,
+  --           max_tokens = 8192,
+  --         },
+  --       },
+  --     },
+  --   },
+  -- },
+  -- dependencies = {
+  --   'nvim-lua/plenary.nvim',
+  --   'MunifTanjim/nui.nvim',
+  --   --- The below dependencies are optional,
+  --   'echasnovski/mini.pick', -- for file_selector provider mini.pick
+  --   'nvim-telescope/telescope.nvim', -- for file_selector provider telescope
+  --   'hrsh7th/nvim-cmp', -- autocompletion for avante commands and mentions
+  --   'ibhagwan/fzf-lua', -- for file_selector provider fzf
+  --   'stevearc/dressing.nvim', -- for input provider dressing
+  --   'folke/snacks.nvim', -- for input provider snacks
+  --   'nvim-tree/nvim-web-devicons', -- or echasnovski/mini.icons
+  --   'zbirenbaum/copilot.lua', -- for providers='copilot'
+  --   {
+  --     -- support for image pasting
+  --     'HakonHarnes/img-clip.nvim',
+  --     event = 'VeryLazy',
+  --     opts = {
+  --       -- recommended settings
+  --       default = {
+  --         embed_image_as_base64 = false,
+  --         prompt_for_file_name = false,
+  --         drag_and_drop = {
+  --           insert_mode = true,
+  --         },
+  --         -- required for Windows users
+  --         use_absolute_path = true,
+  --       },
+  --     },
+  --   },
+  --   {
+  --     -- Make sure to set this up properly if you have lazy=true
+  --     'MeanderingProgrammer/render-markdown.nvim',
+  --     opts = {
+  --       file_types = { 'markdown', 'Avante' },
+  --     },
+  --     ft = { 'markdown', 'Avante' },
+  --   },
+  -- },
+  --
   { -- Autoformat
     'stevearc/conform.nvim',
     event = { 'BufWritePre' },
@@ -901,6 +1008,50 @@ require('lazy').setup({
   -- Highlight todo, notes, etc in comments
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
 
+  {
+    'stevearc/oil.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      CustomOilBar = function()
+        local path = vim.fn.expand '%'
+        path = path:gsub('oil://', '')
+
+        return '  ' .. vim.fn.fnamemodify(path, ':.')
+      end
+
+      require('oil').setup {
+        columns = { 'icon' },
+        keymaps = {
+          ['<M-h>'] = 'actions.select_split',
+        },
+        win_options = {
+          winbar = '%{v:lua.CustomOilBar()}',
+        },
+        view_options = {
+          show_hidden = true,
+          is_always_hidden = function(name, _)
+            local folder_skip = { 'dev-tools.locks', 'dune.lock', '_build' }
+            return vim.tbl_contains(folder_skip, name)
+          end,
+        },
+      }
+
+      -- Open parent directory in current window
+      vim.keymap.set('n', '-', '<CMD>Oil<CR>', { desc = 'Open parent directory' })
+
+      -- Open parent directory in floating window
+      vim.keymap.set('n', '<space>-', require('oil').toggle_float)
+    end,
+  },
+
+  {
+    'windwp/nvim-autopairs',
+    event = 'InsertEnter',
+    config = true,
+    -- use opts = {} for passing setup options
+    -- this is equivalent to setup({}) function
+  },
+
   { -- Collection of various small independent plugins/modules
     'echasnovski/mini.nvim',
     config = function()
@@ -974,7 +1125,7 @@ require('lazy').setup({
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
+  require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
   -- require 'kickstart.plugins.autopairs',
   -- require 'kickstart.plugins.neo-tree',
